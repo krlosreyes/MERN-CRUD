@@ -34,10 +34,6 @@ export const register = async (req, res) => {
 
     res.json({
       message: "User created successfully",
-      // Devuelve un mensaje de éxito.
-    });
-
-    res.json({
       id: userSaved.id,
       email: userSaved.email,
       createdAt: userSaved.createdAt,

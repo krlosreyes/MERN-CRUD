@@ -1,40 +1,40 @@
 import { createContext, useState, useContext } from "react";
 import { registerRequest } from "../api/auth";
-import PropTypes from "prop-types";
 
-// Crear el contexto de autenticación
 export const AuthContext = createContext();
 
-// Hook personalizado para usar el contexto de autenticación
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used whitin an AuthProvider");
   return context;
 };
 
-// Proveedor de autenticación
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const signup = async (user) => {
     try {
       const res = await registerRequest(user);
       console.log(res.data);
       setUser(res.data);
+      setIsAuthenticated(true);
     } catch (error) {
-      console.error("Failed to sign up:", error);
+      console.log(error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ signup, user }}>
+    <AuthContext.Provider
+      value={{
+        signup,
+        user,
+        isAuthenticated,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
-AuthProvider.propTypes = {
-  children: PropTypes.node.isRequired,
-};
-export default AuthProvider;
+export default AuthContext;

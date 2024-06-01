@@ -1,30 +1,39 @@
 import { useForm } from "react-hook-form";
 import { useAuth } from "../context/AuthContext";
-// Componente funcional para la página de registro
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 function RegisterPage() {
   // Hook useForm de react-hook-form para manejar el estado del formulario
   const { register, handleSubmit } = useForm();
-  const { signup, user } = useAuth();
-
-  console.log(user);
+  const { signup, isAuthenticated, error } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (isAuthenticated) navigate("/tasks");
+  }, [isAuthenticated]);
+  //console.log(isAuthenticated);
 
   // Función que se ejecuta al enviar el formulario
-  const onSubmit = handleSubmit(async (values) => {
+  // Función que se ejecuta al enviar el formulario
+  const onSubmit = handleSubmit(async (value) => {
     try {
-      await signup(values);
+      await signup(value);
+      console.log(value);
     } catch (error) {
-      console.error("Registration error:", error.message);
+      console.error("Error during signup:", error);
+      // Maneja el error de registro aquí, por ejemplo, actualizando el estado de error
     }
   });
 
   // Retorna el JSX que representa el formulario de registro
   return (
-    <div className="mx-auto w-1/2 flex items-center  h-screen bg-zinc-800 max-w-md p-10 rounded-md relative">
+    <div className="mx-auto w-1/2 flex items-center h-screen bg-zinc-800 max-w-md p-10 rounded-md relative">
       <form onSubmit={onSubmit}>
         {/* Inputs del formulario */}
         <input
           type="text"
-          {...register("useName", { required: true })}
+          {...register("userName", { required: true })}
           className="w-full bg-zinc-700 text-white px-4 py-2 m-2 rounded-md"
           placeholder="Username"
         />
@@ -59,6 +68,12 @@ function RegisterPage() {
         >
           Register
         </button>
+        {/* Mostrar errores si existen */}
+        {error && (
+          <p className="text-red-500 text-center mt-4">
+            {error.message || "Error al registrar el usuario"}
+          </p>
+        )}
       </form>
     </div>
   );

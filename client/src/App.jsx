@@ -26,7 +26,7 @@ export const App = () => {
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Ruta para la página de tareas */}
-          <Route path="/task" element={<h1>Task page</h1>} />
+          <Route path="/tasks" element={<h1>Task page</h1>} />
 
           {/* Ruta para la página de agregar tarea */}
           <Route path="/add-task" element={<h1>Add Task page</h1>} />
