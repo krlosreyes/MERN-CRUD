@@ -19,7 +19,7 @@ function TaskFormPage() {
         className="w-full bg-zinc-700 text-white px-4 py-2 rounded-mdmy-2"
         { ...register(description)}></textarea>
         <input type="text" placeholder="Type" />
-        <button>
+        <button type="submit" className="w-full bg-white text-black px-4 py-2 m-2 rounded hover:bg-blue-700 hover:text-gray-200">
             Save task
         </button>
         
