@@ -1,6 +1,8 @@
 import User from "../models/user.model.js"; // Importa el modelo de usuario desde el archivo user.model.js.
 import bcrypt from "bcryptjs"; // Importa bcryptjs para realizar operaciones de hash en las contraseñas.
 import { createAccessToken } from "../libs/jwt.js"; // Importa la función createAccessToken desde el archivo jwt.js para crear tokens de acceso.
+import jwt from "jsonwebtoken";
+import { TOKEN_SECRET } from "../config.js";
 
 // Creamos las funciones que manejan la lógica de autenticación.
 
@@ -10,7 +12,9 @@ export const register = async (req, res) => {
   // Desestructura los datos del cuerpo de la solicitud.
 
   try {
-    const passwordHash = await bcrypt.hash(password, 10); 
+    const userFound = await User.findOne({ email });
+    if (userFound) return res.status(400).json(["The email already exist"]);
+    const passwordHash = await bcrypt.hash(password, 10);
     // Encripta la contraseña utilizando bcrypt con un salt de 10.
 
     const newUser = new User({
@@ -23,13 +27,13 @@ export const register = async (req, res) => {
       // La contraseña se almacena encriptada.
     });
 
-    const userSaved = await newUser.save(); 
+    const userSaved = await newUser.save();
     // Guarda el nuevo usuario en la base de datos.
 
     const token = await createAccessToken({ id: userSaved.id });
     // Crea un token de acceso utilizando la función createAccessToken y el ID del usuario guardado.
 
-    res.cookie("token", token); 
+    res.cookie("token", token);
     // Establece una cookie llamada "token" con el token de acceso.
 
     res.json({
@@ -48,26 +52,31 @@ export const register = async (req, res) => {
 
 // Función para iniciar sesión de un usuario existente.
 export const login = async (req, res) => {
-  const { email, password } = req.body; 
+  const { email, password } = req.body;
   // Desestructura el correo electrónico y la contraseña del cuerpo de la solicitud.
 
   try {
-    const userFound = await User.findOne({ email }); 
+    const userFound = await User.findOne({ email });
     // Busca un usuario en la base de datos por su correo electrónico.
 
-    if (!userFound) return res.status(400).json({ message: "User not found" }); 
+    if (!userFound) return res.status(400).json({ message: "User not found" });
     // Si no encuentra al usuario, devuelve un estado 400 y un mensaje de error.
 
-    const isMatch = await bcrypt.compare(password, userFound.password); 
+    const isMatch = await bcrypt.compare(password, userFound.password);
     // Compara la contraseña proporcionada con la contraseña encriptada almacenada en la base de datos.
 
-    if (!isMatch) return res.status(400).json({ message: "Incorrect password" }); 
+    if (!isMatch)
+      return res.status(400).json({ message: "Incorrect password" });
     // Si las contraseñas no coinciden, devuelve un estado 400 y un mensaje de error.
 
-    const token = await createAccessToken({ id: userFound.id }); 
+    const token = await createAccessToken({ id: userFound.id });
     // Crea un token de acceso utilizando el ID del usuario encontrado.
 
-    res.cookie("token", token); 
+    res.cookie("token", token, {
+      sameSite: "none",
+      secure: "true",
+      httpOnly: false,
+    });
     // Establece una cookie llamada "token" con el token de acceso.
 
     res.json({
@@ -111,3 +120,21 @@ export const profile = async (req, res) => {
   });
 };
 
+export const verifyToken = async (req, res) => {
+  const { token } = req.cookies;
+
+  if (!token) return res.status(401).json({ message: "Unautorized" });
+
+  jwt.verify(token, TOKEN_SECRET, async (err, user) => {
+    if (err) return res.status(401).json({ message: "Unautorized" });
+
+    const userFound = await User.findById(user.id);
+    if (!userFound) return res.status(401).json({ message: "Unautorized" });
+
+    return res.json({
+      id: userFound.id,
+      username: userFound.userName,
+      email: userFound.email,
+    });
+  });
+};

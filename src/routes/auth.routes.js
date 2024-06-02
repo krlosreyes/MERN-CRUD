@@ -4,10 +4,12 @@ import {
   login,
   logout,
   profile,
+  verifyToken,
 } from "../controllers/auth.controller.js"; // Importamos las funciones de controlador desde el archivo auth.controller.js.
 import { authRequired } from "../middlewares/validateToken.js"; // Importamos el middleware authRequired desde el archivo validateToken.js.
 import { validateSchema } from "../middlewares/validator.middleware.js";
 import { registerSchema, loginSchema } from "../schemas/auth.schema.js";
+import { verifyTokenRequest } from "../../client/src/api/auth.js";
 
 const router = Router(); // Inicializamos un nuevo objeto Router.
 
@@ -29,6 +31,7 @@ router.post("/logout", logout);
 // Se ejecuta cuando se realiza una solicitud POST a "/logout".
 // Llama a la función logout del controlador de autenticación.
 
+router.get("/verify", verifyToken);
 // Ruta para obtener el perfil del usuario.
 // Utiliza el middleware authRequired para verificar que el usuario está autenticado antes de permitir el acceso al perfil.
 router.get("/profile", authRequired, profile);

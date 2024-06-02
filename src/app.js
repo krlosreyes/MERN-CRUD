@@ -10,6 +10,7 @@ const app = express(); //inicializamos el Servidor
 app.use(
   cors({
     origin: "http://localhost:5173",
+    credentials: true,
   })
 );
 app.use(morgan("dev")); //MOrgan nos permite ver por consola las peticiones que se le hacen al backend
