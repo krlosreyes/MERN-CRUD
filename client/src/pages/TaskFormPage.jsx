@@ -1,13 +1,33 @@
 import { useForm } from "react-hook-form";
 import { useTasks } from "../context/TaskContext";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
 
 function TaskFormPage() {
-  const { register, handleSubmit } = useForm();
-  const { createTask } = useTasks();
-  
+  const { register, handleSubmit, setValue } = useForm();
+  const { createTask, getTask, updateTask } = useTasks();
+  const navigate = useNavigate();
+  const params = useParams();
+
+  useEffect(() => {
+    async function loadTask() {
+      if (params.id) {
+        const task = await getTask(params.id);
+        setValue("title", task.title);
+        setValue("description", task.description);
+        setValue("type", task.type);
+      }
+    }
+    loadTask();
+  }, []);
 
   const onSubmit = handleSubmit((data) => {
-    createTask(data);
+    if (params.id) {
+      updateTask(params.id, data);
+    } else {
+      createTask(data);
+    }
+    navigate("/tasks");
   });
 
   return (
@@ -36,13 +56,14 @@ function TaskFormPage() {
             {...register("type", { required: true })}
             className="w-full bg-zinc-700 text-white px-3 py-1.5 rounded-md my-2"
           >
-            <option value="" disabled selected>
+            <option value="" disabled>
               Select a Type
             </option>
             <option value="Daily task">Daily task</option>
             <option value="Weekly task">Weekly task</option>
             <option value="Monthly task">Monthly task</option>
           </select>
+
           <button
             type="submit"
             className="w-full bg-blue-700 text-white px-4 py-2 rounded my-3 hover:bg-green-700 hover:text-gray-200"

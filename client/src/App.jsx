@@ -10,12 +10,14 @@ import ProfilePage from "./pages/ProfilePage";
 
 import ProtectedRoute from "./ProtectedRoute";
 import { TaskProvider } from "./context/TaskContext";
+import NavBar from "./components/NavBar";
 
 export const App = () => {
   return (
     <AuthProvider>
       <TaskProvider>
         <BrowserRouter>
+        <NavBar/>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
