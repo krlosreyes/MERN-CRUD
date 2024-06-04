@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import PropTypes from 'prop-types'; // Importa PropTypes para la validación de props
+import PropTypes from "prop-types"; // Importa PropTypes para la validación de props
 import { registerRequest, loginRequest, verifyTokenRequest } from "../api/auth";
 import Cookies from "js-cookie";
 
@@ -16,15 +16,6 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (errors.length > 0) {
-      const timer = setTimeout(() => {
-        setErrors([]);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [errors]);
 
   const signup = async (user) => {
     try {
@@ -43,15 +34,23 @@ export const AuthProvider = ({ children }) => {
       const res = await loginRequest(user);
       setUser(res.data);
       setIsAuthenticated(true);
-      Cookies.set('token', res.data.token);
     } catch (error) {
       console.log(error);
-      setErrors(error.response.data.message);
+      // setErrors(error.response.data.message);
     }
   };
 
   useEffect(() => {
-    const checkLogin = async () => {
+    if (errors.length > 0) {
+      const timer = setTimeout(() => {
+        setErrors([]);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [errors]);
+
+  useEffect(() => {
+    async function checkLogin() {
       const cookies = Cookies.get();
       if (!cookies.token) {
         setIsAuthenticated(false);
@@ -61,23 +60,25 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const res = await verifyTokenRequest(cookies.token);
-        console.log(res);
         if (!res.data) {
           setIsAuthenticated(false);
           setLoading(false);
           return;
         }
+
         setIsAuthenticated(true);
         setUser(res.data);
+        setLoading(false);
       } catch (error) {
+        console.log(error);
         setIsAuthenticated(false);
-      } finally {
+        setUser(null);
         setLoading(false);
       }
-    };
+    }
     checkLogin();
   }, []);
-  
+
   return (
     <AuthContext.Provider
       value={{
@@ -97,6 +98,5 @@ export const AuthProvider = ({ children }) => {
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
-
 
 export default AuthContext;
